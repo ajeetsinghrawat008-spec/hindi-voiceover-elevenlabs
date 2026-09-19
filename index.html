@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hindi AI Voiceover — Deep Male Voices</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --card: #141414;
+    --border: #2a2a2a;
+    --accent: #dc2626;
+    --accent-glow: rgba(220, 38, 38, 0.35);
+    --text: #f2f2f2;
+    --muted: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, Segoe UI, Roboto, "Noto Sans Devanagari", sans-serif;
+    min-height: 100vh;
+    padding: 20px 14px 60px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  header .logo {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), #7f1d1d);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 0 24px var(--accent-glow);
+  }
+  header h1 { font-size: 1.1rem; margin: 0; }
+  header p { font-size: 0.78rem; color: var(--muted); margin: 2px 0 0; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+  .card h2 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0 0 12px;
+  }
+  textarea {
+    width: 100%;
+    min-height: 140px;
+    background: #0d0d0d;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    padding: 12px;
+    font-size: 1rem;
+    resize: vertical;
+    line-height: 1.5;
+  }
+  .meta {
+    display: flex;
+    gap: 16px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  .voices {
+    display: grid;
+    gap: 10px;
+  }
+  .voice-option {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: 0.15s;
+    background: #101010;
+  }
+  .voice-option.active {
+    border-color: var(--accent);
+    background: rgba(220,38,38,0.08);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .voice-option .name { font-weight: 600; font-size: 0.95rem; }
+  .voice-option .desc { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+  .sliders label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input[type="range"] { width: 100%; accent-color: var(--accent); margin-bottom: 16px; }
+
+  button.generate {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent), #991b1b);
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 24px var(--accent-glow);
+  }
+  button.generate:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.generate:active { transform: scale(0.99); }
+
+  .player-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  audio { width: 100%; margin-top: 12px; }
+  a.download {
+    flex: 1;
+    text-align: center;
+    background: #1f1f1f;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+  .status {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    padding: 10px 12px;
+    border-radius: 10px;
+    display: none;
+  }
+  .status.error { display: block; background: rgba(220,38,38,0.12); border: 1px solid var(--accent); color: #fca5a5; }
+  .status.loading { display: block; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">🎙️</div>
+    <div>
+      <h1>Hindi AI Voiceover</h1>
+      <p>ElevenLabs studio-quality male voices</p>
+    </div>
+  </header>
+
+  <div class="card">
+    <h2>Script (हिंदी / Hinglish)</h2>
+    <textarea id="script" placeholder="यहाँ अपना स्क्रिप्ट पेस्ट करें...">जो शुरुआत आग जैसी लगे... वो अक्सर जलाने के लिए होती है, गर्माहट देने के लिए नहीं।</textarea>
+    <div class="meta">
+      <span id="wordCount">Words: 0</span>
+      <span id="charCount">Characters: 0</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Voice Tone (सभी Male)</h2>
+    <div class="voices" id="voiceList"></div>
+  </div>
+
+  <div class="card">
+    <h2>Controls</h2>
+    <div class="sliders">
+      <label><span>Stability (कम = ज़्यादा emotional)</span><span id="stabilityVal">0.45</span></label>
+      <input type="range" id="stability" min="0" max="1" step="0.05" value="0.45" />
+      <label><span>Similarity Boost</span><span id="similarityVal">0.80</span></label>
+      <input type="range" id="similarity" min="0" max="1" step="0.05" value="0.80" />
+    </div>
+  </div>
+
+  <button class="generate" id="generateBtn">🎧 Generate Voiceover</button>
+  <div class="status" id="status"></div>
+
+  <audio id="player" controls style="display:none;"></audio>
+  <div class="player-row" id="downloadRow" style="display:none;">
+    <a href="#" class="download" id="downloadLink" download="voiceover.mp3">⬇ Download MP3</a>
+  </div>
+</div>
+
+<script>
+  const VOICES = [
+    {
+      id: 'pNInz6obpgDQGcFmaJgB',
+      name: 'Deep Attractive Male',
+      desc: 'Rich, magnetic, cinematic — premium narrator feel',
+    },
+    {
+      id: 'VR6AewLTigWG4xSOukaG',
+      name: 'Dark Psychology',
+      desc: 'Crisp, intense, serious tone',
+    },
+    {
+      id: 'ErXwobaYiN019PkySvjV',
+      name: 'Storytelling',
+      desc: 'Warm, engaging, natural narration',
+    },
+    {
+      id: 'TxGEqnHWrfWFTfGW9XjX',
+      name: 'Motivational / Self Improvement',
+      desc: 'Confident, energetic, inspiring',
+    },
+    {
+      id: 'yoZ06aMxZJJ28mfd3POQ',
+      name: 'Documentary Narrator',
+      desc: 'Calm, authoritative, professional',
+    },
+  ];
+
+  let selectedVoice = VOICES[0].id;
+
+  const voiceList = document.getElementById('voiceList');
+  VOICES.forEach((v, i) => {
+    const el = document.createElement('div');
+    el.className = 'voice-option' + (i === 0 ? ' active' : '');
+    el.dataset.id = v.id;
+    el.innerHTML = '<div class="name">' + v.name + '</div><div class="desc">' + v.desc + '</div>';
+    el.addEventListener('click', () => {
+      document.querySelectorAll('.voice-option').forEach((o) => o.classList.remove('active'));
+      el.classList.add('active');
+      selectedVoice = v.id;
+    });
+    voiceList.appendChild(el);
+  });
+
+  const scriptEl = document.getElementById('script');
+  const wordCountEl = document.getElementById('wordCount');
+  const charCountEl = document.getElementById('charCount');
+  function updateCounts() {
+    const val = scriptEl.value.trim();
+    wordCountEl.textContent = 'Words: ' + (val ? val.split(/\s+/).length : 0);
+    charCountEl.textContent = 'Characters: ' + scriptEl.value.length;
+  }
+  scriptEl.addEventListener('input', updateCounts);
+  updateCounts();
+
+  const stabilitySlider = document.getElementById('stability');
+  const similaritySlider = document.getElementById('similarity');
+  const stabilityVal = document.getElementById('stabilityVal');
+  const similarityVal = document.getElementById('similarityVal');
+  stabilitySlider.addEventListener('input', () => (stabilityVal.textContent = stabilitySlider.value));
+  similaritySlider.addEventListener('input', () => (similarityVal.textContent = similaritySlider.value));
+
+  const generateBtn = document.getElementById('generateBtn');
+  const statusEl = document.getElementById('status');
+  const player = document.getElementById('player');
+  const downloadRow = document.getElementById('downloadRow');
+  const downloadLink = document.getElementById('downloadLink');
+
+  function setStatus(type, message) {
+    statusEl.className = 'status ' + (type || '');
+    statusEl.textContent = message || '';
+  }
+
+  generateBtn.addEventListener('click', async () => {
+    const text = scriptEl.value.trim();
+    if (!text) {
+      setStatus('error', 'पहले कुछ स्क्रिप्ट लिखें।');
+      return;
+    }
+
+    generateBtn.disabled = true;
+    setStatus('loading', 'Voice generate ho rahi hai... thoda wait karein.');
+    player.style.display = 'none';
+    downloadRow.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/generate-voice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          voiceId: selectedVoice,
+          stability: parseFloat(stabilitySlider.value),
+          similarityBoost: parseFloat(similaritySlider.value),
+        }),
+      });
+
+      if (!res.ok) {
+        let msg = 'Voice generate nahi ho payi.';
+        try {
+          const j = await res.json();
+          msg = j.error || msg;
+        } catch (e) {}
+        setStatus('error', msg);
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      player.src = url;
+      player.style.display = 'block';
+      downloadLink.href = url;
+      downloadRow.style.display = 'flex';
+      setStatus('', '');
+      player.play().catch(() => {});
+    } catch (err) {
+      setStatus('error', 'Network/server error: ' + err.message);
+    } finally {
+      generateBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
