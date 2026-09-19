@@ -1,0 +1,6 @@
+{
+  "name": "hindi-voiceover-elevenlabs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hindi AI Voiceover Generator using ElevenLabs Text-to-Speech (deep male voices)."
+}
